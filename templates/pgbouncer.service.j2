@@ -1,0 +1,16 @@
+
+[Unit]
+Description=A lightweight connection pooler for PostgreSQL
+After=network.target
+
+[Service]
+User=postgres
+LimitNOFILE={{ pgbouncer__limit_open_files }}
+ExecStart=/usr/sbin/pgbouncer /etc/pgbouncer/pgbouncer.ini
+ExecReload=/bin/kill -HUP $MAINPID
+# the old scripted restart with -R does not help when using TLS
+
+[Install]
+WantedBy=multi-user.target
+Wants=network-online.target
+

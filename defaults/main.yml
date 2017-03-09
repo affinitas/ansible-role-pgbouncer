@@ -1,0 +1,142 @@
+
+---
+
+# this is the only version i use
+pgbouncer__packages:
+  - pgbouncer=1.7*
+
+pgbouncer__package_state: present
+
+
+
+# number of file descriptors is set by systemd
+pgbouncer__limit_open_files: 5000
+pgbouncer__confdir: /etc/pgbouncer
+pgbouncer__daemon_opts: -d {{ pgbouncer__confdir }}/pgbouncer.ini
+pgbouncer__daemon_start: 1
+pgbouncer__user: postgres
+pgbouncer__group: postgres
+
+
+
+# pg_hba defaults
+pgbouncer__pg_hba_conf:
+  - type: local
+    database: all
+    user: all
+    address: ""
+    method: trust
+    comment: local socket connections
+  - type: host
+    database: all
+    user: all
+    address: 127.0.0.1/32
+    method: md5
+  - comment: local IPv4 connections
+  - type: host
+    database: all
+    user: all
+    address: ::1/128
+    method: md5
+  - comment: local IPv6 connections
+
+
+
+# pgbouncer.ini configuration
+pgbouncer__databases:
+  - name: "*"
+    host: 127.0.0.1
+    port: 5432
+
+pgbouncer__logfile: /var/log/postgresql/pgbouncer.log
+pgbouncer__pidfile: /var/run/postgresql/pgbouncer.pid
+pgbouncer__listen_addr: 127.0.0.1
+pgbouncer__listen_port: 6432
+pgbouncer__unix_socket_dir: /var/run/postgresql
+pgbouncer__unix_socket_mode: 0777
+pgbouncer__unix_socket_group: "not set"
+
+pgbouncer__client_tls_sslmode: disable
+pgbouncer__client_tls_ca_file: "not set"
+pgbouncer__client_tls_key_file: "not set"
+pgbouncer__client_tls_cert_file: "not set"
+pgbouncer__client_tls_ciphers: fast
+pgbouncer__client_tls_protocols: all
+pgbouncer__client_tls_dheparams: auto
+pgbouncer__client_tls_ecdhcurve: auto
+pgbouncer__server_tls_sslmode: disable
+pgbouncer__server_tls_ca_file: "not set"
+pgbouncer__server_tls_key_file: "not set"
+pgbouncer__server_tls_cert_file: "not set"
+pgbouncer__server_tls_protocols: all
+pgbouncer__server_tls_ciphers: fast
+
+pgbouncer__auth_type: trust
+pgbouncer__auth_file: /etc/pgbouncer/userlist.txt
+pgbouncer__auth_hba_file: /etc/pgbouncer/pg_hba.conf
+pgbouncer__auth_query: SELECT usename, passwd FROM pg_shadow WHERE usename=$1
+
+pgbouncer__admin_users:
+  - postgres
+  - root
+
+pgbouncer__stats_users:
+  - postgres
+  - root
+
+pgbouncer__pool_mode: session
+pgbouncer__server_reset_query: DISCARD ALL
+pgbouncer__server_reset_query_always: 0
+pgbouncer__ignore_startup_parameters: extra_float_digits
+pgbouncer__server_check_query: select 1
+pgbouncer__server_check_delay: 30
+pgbouncer__application_name_add_host: 0
+
+pgbouncer__max_client_conn: 100
+pgbouncer__default_pool_size: 20
+pgbouncer__min_pool_size: 0
+pgbouncer__reserve_pool_size: 5
+pgbouncer__reserve_pool_timeout: 3
+pgbouncer__max_db_connections: 50
+pgbouncer__max_user_connections: 50
+pgbouncer__server_round_robin: 0
+
+pgbouncer__syslog: 0
+pgbouncer__syslog_facility: daemon
+pgbouncer__syslog_ident: pgbouncer
+pgbouncer__log_connections: 1
+pgbouncer__log_disconnections: 1
+pgbouncer__log_pooler_errors: 1
+pgbouncer__stats_period: 60
+pgbouncer__verbose: 0
+
+pgbouncer__server_lifetime: 1200
+pgbouncer__server_idle_timeout: 60
+pgbouncer__server_connect_timeout: 15
+pgbouncer__server_login_retry: 15
+pgbouncer__query_timeout: 0
+pgbouncer__query_wait_timeout: 120
+pgbouncer__client_idle_timeout: 0
+pgbouncer__client_login_timeout: 60
+pgbouncer__autodb_idle_timeout: 3600
+pgbouncer__suspend_timeout: 10
+pgbouncer__idle_transaction_timeout: 0
+
+pgbouncer__pkt_buf: 4096
+pgbouncer__listen_backlog: 128
+pgbouncer__sbuf_loopcnt: 5
+pgbouncer__max_packet_size: 2147483647
+pgbouncer__tcp_defer_accept: 45
+pgbouncer__tcp_socket_buffer: 4096
+pgbouncer__tcp_keepalive: 0
+pgbouncer__tcp_keepcnt: 0
+pgbouncer__tcp_keepidle: 0
+pgbouncer__tcp_keepintvl: 0
+pgbouncer__dns_max_ttl: 15
+pgbouncer__dns_zone_check_period: 0
+pgbouncer__dns_nxdomain_ttl: 15
+
+pgbouncer__disable_pqexec: 0
+pgbouncer__service_name: pgbouncer
+pgbouncer__job_name: pgbouncer
+; no include implemented

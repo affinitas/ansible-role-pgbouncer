@@ -1,0 +1,33 @@
+---
+
+- include: install.yml
+  tags: [pgbouncer, pgbouncer-install]
+
+- include: configure.yml
+  tags: [pgbouncer, pgbouncer-configure]
+
+  # TODO - make a template and find a better place
+- name: configure routes for pgbouncer service via eth01
+  copy:
+    content: |+
+      #! /bin/bash
+      #
+      # set routes to known database clients when activating interface eth1
+      #
+      [ "$IFACE" != eth1 ] && exit 0
+      [ "$MODE" != start ] && exit 0
+      ETH1_MAC=$(cat /sys/class/net/eth1/address)
+      ETH1_IP4=$(/usr/bin/curl -s http://169.254.169.254/latest/meta-data/network/interfaces/macs/${ETH1_MAC}/local-ipv4s/);
+      ETH1_HOP=${ETH1_IP4%\.*}.1
+      ip route add 52.51.204.64/32  via $ETH1_HOP dev eth1 src $ETH1_IP4     # incoming from AWS
+      ip route add 52.208.78.233/32 via $ETH1_HOP dev eth1 src $ETH1_IP4     # incoming from AWS
+      ip route add 52.209.141.80/32 via $ETH1_HOP dev eth1 src $ETH1_IP4     # incoming from AWS
+      ip route add 62.138.92.1/32   via $ETH1_HOP dev eth1 src $ETH1_IP4     # incoming from Plus Server
+      ip route add 91.102.13.155/32 via $ETH1_HOP dev eth1 src $ETH1_IP4     # incoming from IPB
+      ip route add 194.29.225.34/32 via $ETH1_HOP dev eth1 src $ETH1_IP4     # incoming from IPB
+      # ip route add 78.47.96.187/32  via $ETH1_HOP dev eth1 src $ETH1_IP4     # ckoch external test node
+      exit 0
+    dest: /etc/network/if-up.d/serviceroute
+    mode: 0755
+  notify: restart eth1
+

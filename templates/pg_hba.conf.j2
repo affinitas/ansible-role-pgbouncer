@@ -1,0 +1,10 @@
+#
+#
+#
+
+# TYPE  DATABASE    USER        CIDR-ADDRESS          METHOD
+
+{% for row in pg_hba %}
+{{ row.type }}  {{ row.database }}  {{ row.user }} {{ row.address }} {{ row.method }} # {{ row.comment) }}
+{% endif %}
+{%- endfor %}

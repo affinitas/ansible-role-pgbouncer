@@ -1,0 +1,94 @@
+---
+
+- name: Create "/var/log/postgresql/" directory with necessary privileges
+  file:
+    dest: "/var/log/postgresql/"
+    owner: "{{ pgbouncer__user }}"
+    group: "{{ pgbouncer__group }}"
+    mode: 0755
+    state: directory
+
+- name: Divert pgbouncer main configuration file {{ pgbouncer__confdir }}/pgbouncer.ini
+  command: dpkg-divert --quiet --local --divert {{ pgbouncer__confdir }}/pgbouncer.ini.dpkg-divert --rename {{ pgbouncer__confdir }}/pgbouncer.ini
+  args:
+    creates: "{{ pgbouncer__confdir }}/pgbouncer.ini.dpkg-divert"
+
+- name: pgbouncer update restart witness
+  template:
+    src: "pgbouncer.ini.restart-witness.j2"
+    dest: "{{ pgbouncer__confdir }}/.pgbouncer.ini.restart-witness"
+    owner: "{{ pgbouncer__user }}"
+    group: "{{ pgbouncer__group }}"
+    mode: 0600
+  notify:
+    - restart pgbouncer
+
+- name: pgbouncer main configuration file {{ pgbouncer__confdir }}/pgbouncer.ini
+  template:
+    src: pgbouncer.ini.j2
+    dest: "{{ pgbouncer__confdir }}/pgbouncer.ini"
+    owner: "{{ pgbouncer__user }}"
+    group: "{{ pgbouncer__group }}"
+    mode: 0640
+  notify:
+    - reload pgbouncer
+
+# - name: Divert pgbouncer hba file {{ pgbouncer__confdir }}/pgbouncer__hba.conf
+#  command: dpkg-divert --quiet --local --divert {{ pgbouncer__confdir }}/pgbouncer__hba.conf.dpkg-divert --rename {{ pgbouncer__confdir }}/pgbouncer__hba.conf
+#  args:
+#    creates: "{{ pgbouncer__confdir }}/pgbouncer__hba.conf.dpkg-divert"
+
+- name: pgbouncer hba file {{ pgbouncer__confdir }}/pg_hba.conf
+  template:
+    src: pg_hba.conf.j2
+    dest: "{{ pgbouncer__confdir }}/pg_hba.conf"
+    owner: "{{ pgbouncer__user }}"
+    group: "{{ pgbouncer__group }}"
+    mode: 0640
+  notify:
+    - reload pgbouncer
+
+- name: Divert pgbouncer user list file {{ pgbouncer__confdir }}/userlist.txt
+  command: dpkg-divert --quiet --local --divert {{ pgbouncer__confdir }}/userlist.txt.dpkg-divert --rename {{ pgbouncer__confdir }}/userlist.txt
+  args:
+    creates: "{{ pgbouncer__confdir }}/userlist.txt.dpkg-divert"
+
+- name: add users to userlist.txt
+  copy:
+    dest: "{{ pgbouncer__confdir }}/userlist.txt"
+    owner: "{{ pgbouncer__user }}"
+    group: "{{ pgbouncer__group }}"
+    mode: 0640
+    content: |
+      {% for user in pgbouncer__users %}
+      "{{ user.name }}" "md5{{ (user.pass + user.name) | hash('md5') }}"
+      {% endfor %}
+  notify:
+    - reload pgbouncer
+
+- name: Divert pgbouncer default file /etc/default/pgbouncer
+  command: dpkg-divert --quiet --local --divert /etc/default/pgbouncer.dpkg-divert --rename /etc/default/pgbouncer
+  args:
+    creates: "/etc/default/pgbouncer.dpkg-divert"
+
+
+- name: pgbouncer register systemd
+  template:
+    src: pgbouncer.service.j2
+    dest: "/etc/systemd/system/pgbouncer.service"
+    owner: "root"
+    group: "root"
+    mode: 0644
+  register: pgbouncer__service_changed = "yes"
+  notify:
+    - restart pgbouncer
+
+- name: reload systemd when service changed
+  command: /bin/systemctl daemon-reload
+  when: pgbouncer__service_changed is defined
+
+- name: ensure pgbouncer is running
+  service:
+    name: pgbouncer
+    state: started
+
