@@ -23,6 +23,7 @@
 
 {% for db in pgbouncer__databases %}
 {{ db.name }} = {% for key, value in db.items() %}{% if key != 'name' %}{{ key }}={{ value }} {% endif %}{% endfor %}
+
 {% endfor %}
 
 ;; Configuration section
@@ -84,12 +85,12 @@ client_tls_ecdhcurve = {{ pgbouncer__client_tls_ecdhcurve }}
 server_tls_sslmode = {{ pgbouncer__server_tls_sslmode }}
 
 ;; Path to that contains trusted CA certs
-{% if pgbouncer__server_tls_ca_file != "not set" -%}{{ ("server_tls_ca_file = " + pgbouncer__server_tls_ca_file }}{% endif %}
+{% if pgbouncer__server_tls_ca_file != "not set" -%}{{ ("server_tls_ca_file = " + pgbouncer__server_tls_ca_file) }}{% endif %}
 
 ;; Private key and cert to present to backend.
 ;; Needed only if backend server require client cert.
-{% if pgbouncer__server_tls_key_file != "not set" -%}{{ ("server_tls_key_file = " + pgbouncer__server_tls_key_file }}{% endif %}
-{% if pgbouncer__server_tls_cert_file != "not set" -%}{{ ("server_tls_cert_file = " + pgbouncer__server_tls_cert_file }}{% endif %}
+{% if pgbouncer__server_tls_key_file != "not set" -%}{{ ("server_tls_key_file = " + pgbouncer__server_tls_key_file) }}{% endif %}
+{% if pgbouncer__server_tls_cert_file != "not set" -%}{{ ("server_tls_cert_file = " + pgbouncer__server_tls_cert_file) }}{% endif %}
 
 ;; all, secure, tlsv1.0, tlsv1.1, tlsv1.2
 server_tls_protocols = {{ pgbouncer__server_tls_protocols }}
@@ -346,4 +347,3 @@ job_name = {{ pgbouncer__job_name }}
 
 ;; Read additional config from the /etc/pgbouncer/pgbouncer-other.ini file
 ;%include /etc/pgbouncer/pgbouncer-other.ini
-

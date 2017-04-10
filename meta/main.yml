@@ -13,6 +13,6 @@ galaxy_info:
     - database
     - postgresql
 
-dependencies:
-  - { role: 'debops.core', when: ansible_os_family == 'Debian' }
+# dependencies:
+#   - { role: 'debops.core', when: ansible_os_family == 'Debian' }
 

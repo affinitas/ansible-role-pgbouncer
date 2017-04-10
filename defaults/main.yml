@@ -4,6 +4,7 @@
 # this is the only version i use
 pgbouncer__packages:
   - pgbouncer=1.7*
+  - keepalived
 
 pgbouncer__package_state: present
 
@@ -17,6 +18,11 @@ pgbouncer__daemon_start: 1
 pgbouncer__user: postgres
 pgbouncer__group: postgres
 
+
+# yep
+pgbouncer__users:
+  - name: user
+    pass: password
 
 
 # pg_hba defaults
@@ -73,7 +79,7 @@ pgbouncer__server_tls_ciphers: fast
 
 pgbouncer__auth_type: trust
 pgbouncer__auth_file: /etc/pgbouncer/userlist.txt
-pgbouncer__auth_hba_file: /etc/pgbouncer/pg_hba.conf
+pgbouncer__auth_hba_file: /etc/pgbouncer/pgbouncer_hba.conf
 pgbouncer__auth_query: SELECT usename, passwd FROM pg_shadow WHERE usename=$1
 
 pgbouncer__admin_users:
@@ -139,4 +145,5 @@ pgbouncer__dns_nxdomain_ttl: 15
 pgbouncer__disable_pqexec: 0
 pgbouncer__service_name: pgbouncer
 pgbouncer__job_name: pgbouncer
-; no include implemented
+
+# ; no include implemented

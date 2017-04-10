@@ -13,23 +13,23 @@
   args:
     creates: "{{ pgbouncer__confdir }}/pgbouncer.ini.dpkg-divert"
 
-- name: pgbouncer update restart witness
-  template:
-    src: "pgbouncer.ini.restart-witness.j2"
-    dest: "{{ pgbouncer__confdir }}/.pgbouncer.ini.restart-witness"
-    owner: "{{ pgbouncer__user }}"
-    group: "{{ pgbouncer__group }}"
-    mode: 0600
-  notify:
-    - restart pgbouncer
+# - name: pgbouncer update restart witness
+#  template:
+#    src: "pgbouncer.ini.restart-witness.j2"
+#    dest: "{{ pgbouncer__confdir }}/.pgbouncer.ini.restart-witness"
+#    owner: "{{ pgbouncer__user }}"
+#    group: "{{ pgbouncer__group }}"
+#    mode: 0600
+#  notify:
+#    - restart pgbouncer
 
 - name: pgbouncer main configuration file {{ pgbouncer__confdir }}/pgbouncer.ini
   template:
     src: pgbouncer.ini.j2
     dest: "{{ pgbouncer__confdir }}/pgbouncer.ini"
-    owner: "{{ pgbouncer__user }}"
-    group: "{{ pgbouncer__group }}"
-    mode: 0640
+    owner: "root"
+    group: "root"
+    mode: 0644
   notify:
     - reload pgbouncer
 
@@ -41,10 +41,10 @@
 - name: pgbouncer hba file {{ pgbouncer__confdir }}/pg_hba.conf
   template:
     src: pg_hba.conf.j2
-    dest: "{{ pgbouncer__confdir }}/pg_hba.conf"
-    owner: "{{ pgbouncer__user }}"
-    group: "{{ pgbouncer__group }}"
-    mode: 0640
+    dest: "{{ pgbouncer__confdir }}/pgbouncer_hba.conf"
+    owner: "root"
+    group: "root"
+    mode: 0644
   notify:
     - reload pgbouncer
 
@@ -56,9 +56,9 @@
 - name: add users to userlist.txt
   copy:
     dest: "{{ pgbouncer__confdir }}/userlist.txt"
-    owner: "{{ pgbouncer__user }}"
-    group: "{{ pgbouncer__group }}"
-    mode: 0640
+    owner: "root"
+    group: "root"
+    mode: 0644
     content: |
       {% for user in pgbouncer__users %}
       "{{ user.name }}" "md5{{ (user.pass + user.name) | hash('md5') }}"
@@ -83,9 +83,10 @@
   notify:
     - restart pgbouncer
 
-- name: reload systemd when service changed
-  command: /bin/systemctl daemon-reload
+- name: force systemd to reread configs (2.4 and above)
+  systemd: daemon_reload=yes
   when: pgbouncer__service_changed is defined
+
 
 - name: ensure pgbouncer is running
   service:
