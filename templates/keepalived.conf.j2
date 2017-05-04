@@ -1,0 +1,33 @@
+
+global_defs {
+    # send notice on state change
+    notification_email {
+        "{{ keepalived__notification_email }}"
+    }
+    notification_email_from "{{ keepalived__notification_email_from }}"
+}
+
+
+vrrp_script chk_pgbouncer {
+        script "pidof pgbouncer"
+        interval interval {{ keepalived__interval }}
+}
+
+vrrp_instance VI_1 {
+   debug "{{ keepalived__debug }}"
+   interface eth0                # interface to monitor
+   state EQUAL
+   virtual_router_id 51
+   priority 100
+   nopreempt
+   preempt_delay 3
+   unicast_src_ip {{ keepalived__unicast_src_ip }}
+   unicast_peer {
+       {{ keepalived__unicast_peer }}
+   }
+   track_script {
+       chk_pgbouncer
+   }
+
+   notify_master "{{ keepalived__track_script}}"
+}

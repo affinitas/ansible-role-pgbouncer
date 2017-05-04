@@ -1,0 +1,20 @@
+#!/bin/bash
+
+
+# take over pgbouncer by associating the public eip to my outer IF
+
+my_public_ip=$(getent hosts {{ dbmw_public_fqdn }} | awk '{ print $1 }')
+my_allocation_id=$(aws ec2 describe-addresses --region {{ amazon_region }} --public-ips $my_public_ip | awk -F\"  '/AllocationId/ { print $4 }')
+
+
+my_outer_ip=$(getent hosts {{ my_dbmw_outer_fqdn }} | awk '{ print $1 }')
+my_interface_id=$(aws ec2 describe-network-interfaces --region eu-west-1 --filters Name=addresses.private-ip-address,Values=${my_outer_ip} | awk -F\" '/NetworkInterfaceId/ { print $4 }')
+
+
+aws ec2 associate-address \
+    --region  {{ amazon_region }}    \
+    --network-interface-id ${my_interface_id} \
+    --allocation-id ${my_allocation_id} \
+    --allow-reassociation
+
+#done

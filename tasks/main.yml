@@ -6,6 +6,13 @@
 - include: configure.yml
   tags: [pgbouncer, pgbouncer-configure]
 
+- debug:
+    msg: "hallo {{ pgbouncer__keepalived }}"
+
+- include: keepalived.yml
+  when: pgbouncer__keepalived
+  tags: [pgbouncer, pgbouncer-configure, config_keepalived]
+
   # TODO - make a template and find a better place
 - name: configure routes for pgbouncer service via eth01
   copy:

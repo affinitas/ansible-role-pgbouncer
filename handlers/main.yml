@@ -1,4 +1,7 @@
+
 ---
+
+# handlers for pgbouncer
 
 - name: start pgbouncer
   service:
@@ -23,3 +26,10 @@
 - name: restart eth1
   command: bash -c "ifdown eth1 && ifup eth1"
 
+
+# handlers for keepalived
+
+- name: restart keepalived
+  service:
+    name: keepalived
+    state: restarted
